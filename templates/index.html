@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歡迎來到好不容易寫好請誇誇元涼的全自動驗證碼查詢網站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>歡迎來到好不容易寫好請誇誇元涼的全自動驗證碼查詢網站</h1>
+    <p class="subtitle">選擇信箱或一次查詢全部，取得最近 30 分鐘內的驗證碼郵件</p>
+
+    <div class="search-info">
+        <strong>搜尋條件（寄件者 OR 主旨）：</strong>
+        {% if criteria.sender %}
+        <div>寄件者包含：{{ criteria.sender }}</div>
+        {% endif %}
+        {% if criteria.subject %}
+        <div>主旨包含：{{ criteria.subject }}</div>
+        {% endif %}
+        {% if not criteria.sender and not criteria.subject %}
+        <div>尚未設定，請在 .env 填入 SEARCH_SENDER 或 SEARCH_SUBJECT</div>
+        {% endif %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="mailbox-buttons">
+        
+        {% for mailbox in mailboxes %}
+            {% if mailbox.configured %}
+            <a
+                href="{{ url_for('mailbox_search', mailbox_id=mailbox.id) }}"
+                class="mailbox-button{% if selected_mailbox == mailbox.id %} active{% endif %}"
+            >
+                {{ mailbox.address }}
+            </a>
+            {% else %}
+            <span class="mailbox-button disabled">
+                信箱 {{ mailbox.id }}（未設定）
+            </span>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if searched %}
+        {% if emails %}
+            <div class="results-header">
+                <h2>找到 {{ emails|length }} 封符合條件的郵件</h2>
+            </div>
+            {% for email in emails %}
+            <div class="email-card">
+                <div class="email-meta">
+                    {% if selected_mailbox == 'all' %}
+                    <div><strong>信箱：</strong>{{ email.mailbox }}</div>
+                    {% endif %}
+                    <div><strong>主旨：</strong>{{ email.subject }}</div>
+                    <div><strong>寄件者：</strong>{{ email.from }}</div>
+                    <div><strong>收件時間：</strong>{{ email.received_at_display }}</div>
+                </div>
+
+                {% if email.body_html %}
+                <div class="email-body-html">{{ email.body_html | safe }}</div>
+                {% else %}
+                <div class="email-body-empty">（此信件沒有可顯示的 HTML 內容）</div>
+                {% endif %}
+
+               
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-message">最近 30 分鐘沒有符合條件的郵件。</div>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
