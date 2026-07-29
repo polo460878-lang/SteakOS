@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "steakos-dev-secret")
 
 GMAIL_IMAP_HOST = "imap.gmail.com"
-MAILBOX_COUNT = 5
+MAILBOX_COUNT = 6
 SEARCH_WINDOW_MINUTES = 30
 
 
